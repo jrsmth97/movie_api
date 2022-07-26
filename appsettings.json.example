@@ -1,0 +1,27 @@
+{
+    "Service": {
+      "Name": "movie_api",
+      "Secret": "sup3rs3cr3tofs3cr3t",
+      "LoginExpiredDay": 1,
+      "AvatarUrl": "https://ui-avatars.com/api/",
+      "UrlPosterBaseUri": "https://image.tmdb.org/t/p/original/",
+      "MailHost": "",
+      "MailPort": 587,
+      "MailUserId": "",
+      "MailPassword": "",
+      "MailFromName": "Movie Api",
+      "MailFromEmail": "no-reply@movieapi.com"
+    },
+    "ConnectionStrings": {
+      "Default": "server=localhost;user=root;password=;database=movie_api_db"
+    },
+    "Logging": {
+      "LogLevel": {
+        "Default": "Information",
+        "Microsoft": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information"
+      }
+    },
+    "AllowedHosts": "*"
+  }
+  
