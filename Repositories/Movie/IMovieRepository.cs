@@ -17,5 +17,7 @@ namespace movie_api.Repositories
         Task<Movies> GetAsync(int id);
         
         Task<IList<Movies>> GetListAsync(QueryParamsMovies queryParams);
+
+        Task<int> GetCountListAsync(QueryParamsMovies queryParams);
     }
 }

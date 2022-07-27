@@ -21,8 +21,17 @@ namespace movie_api.Repositories
 
         public async Task<Users> CreateAsync(Users users)
         {
-            users.created_at = DateTime.Now;
-            await _db.users.AddAsync(users);
+            Users createUser = new Users{
+                name = users.name,
+                email = users.email,
+                password = users.password,
+                avatar = users.avatar,
+                activation_key = users.activation_key,
+                is_admin = users.is_admin
+            };
+
+            createUser.created_at = DateTime.Now;
+            await _db.users.AddAsync(createUser);
             _db.SaveChanges();
             return users;
         }

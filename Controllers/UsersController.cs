@@ -12,7 +12,6 @@ using movie_api.Validations;
 using movie_api.Repositories;
 using movie_api.Helpers;
 using movie_api.Attributes;
-using movie_api.Utils;
 
 namespace movie_api.Controllers
 {

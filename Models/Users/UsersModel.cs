@@ -27,7 +27,7 @@ namespace movie_api.Models
         [Required, Column(name: "is_admin", TypeName = "int")]
         public int is_admin { get; set; }
 
-        [Required, Column(name: "is_confirmed", TypeName = "int")]
+        [Column(name: "is_confirmed", TypeName = "int")]
         public int is_confirmed { get; set; }
 
         [Column(name: "activation_key", TypeName = "varchar(255)")]

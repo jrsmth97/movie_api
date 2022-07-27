@@ -86,5 +86,15 @@ namespace movie_api.Repositories
                                     .ToListAsync();
         }
 
+        public async Task<int> GetCountListAsync(QueryParamsMovies queryParams)
+        {
+            int offset = (queryParams.page - 1) * 10;
+
+            return await _db.movies.Where(x => x.title.Contains(queryParams.title))
+                                    .Skip(offset)
+                                    .Take(queryParams.limit)
+                                    .CountAsync();
+        }
+
     }
 }

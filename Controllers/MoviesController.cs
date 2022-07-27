@@ -1,8 +1,5 @@
-using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
@@ -11,7 +8,6 @@ using Newtonsoft.Json;
 using movie_api.Models;
 using movie_api.Validations;
 using movie_api.Repositories;
-using movie_api.Helpers;
 using movie_api.Attributes;
 using movie_api.Utils;
 
@@ -43,8 +39,18 @@ namespace movie_api.Controllers
         public async Task<IActionResult> GetMovies([FromQuery] QueryParamsMovies qParams)
         {
             IList<Movies> movies = await _movieRepository.GetListAsync(qParams);
+            int totalData = await _movieRepository.GetCountListAsync(qParams);
+            
+            MovieListData listData = new MovieListData{
+                page = qParams.page,
+                limit = qParams.limit,
+                total_data = totalData,
+                search_query = new { title = qParams.title },
+                movies = movies
+            };
+
             _logger.LogInformation("[GET: /api/movies] All movies data accessed");
-            return Ok(movies);
+            return Ok(listData);
         }
 
         [Authorize]
