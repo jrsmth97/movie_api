@@ -48,6 +48,7 @@ namespace movie_api.Repositories
             using (var context = _db)
             {
                 context.tags.Remove(tag);
+                context.SaveChanges();
             }
 
             return tag;

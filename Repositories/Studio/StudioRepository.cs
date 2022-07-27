@@ -49,6 +49,7 @@ namespace movie_api.Repositories
             using (var context = _db)
             {
                 context.studios.Remove(studio);
+                context.SaveChanges();
             }
 
             return studio;

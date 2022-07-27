@@ -59,6 +59,7 @@ namespace movie_api.Repositories
             using (var context = _db)
             {
                 context.users.Remove(user);
+                context.SaveChanges();
             }
 
             return user;

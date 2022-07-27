@@ -50,6 +50,7 @@ namespace movie_api.Repositories
             using (var context = _db)
             {
                 context.orders.Remove(order);
+                context.SaveChanges();
             }
 
             return order;

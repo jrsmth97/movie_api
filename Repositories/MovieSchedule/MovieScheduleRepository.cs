@@ -56,6 +56,7 @@ namespace movie_api.Repositories
             using (var context = _db)
             {
                 context.movieSchedules.Remove(movieSchedule);
+                context.SaveChanges();
             }
 
             return movieSchedule;
