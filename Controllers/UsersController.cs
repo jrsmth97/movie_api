@@ -100,6 +100,7 @@ namespace movie_api.Controllers
         
         [Authorize]
         [HttpPatch("/api/users/update-avatar")]
+        [RequestSizeLimit(2 * 1024 * 1024)] // set limit to 2mb
         public async Task<IActionResult> UpdateAvatar([FromForm] UsersUpdateAvatar avatar)
         {
             var userId = int.Parse(HttpContext.Items["UserId"].ToString());
