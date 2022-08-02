@@ -44,6 +44,7 @@ namespace movie_api.Repositories
             {
                 existingUser.name = user.name != null ? user.name : existingUser.name;
                 existingUser.email = user.email != null ? user.email : existingUser.email;
+                existingUser.avatar = user.avatar != null ? user.avatar : existingUser.avatar;
                 existingUser.password = user.password != null ? user.password : existingUser.password;
                 existingUser.updated_at = DateTime.Now;
                 _db.users.Update(existingUser);
