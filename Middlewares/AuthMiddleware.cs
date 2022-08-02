@@ -32,7 +32,7 @@ namespace movie_api.Middlewares
             await _next(context);
         }
 
-        private async void injectAccount(HttpContext context, string token)
+        private void injectAccount(HttpContext context, string token)
         {
             try
             {
@@ -60,7 +60,7 @@ namespace movie_api.Middlewares
             }
             catch
             {
-                await _next(context);
+                // DO NOTHING
             }
         }
 
