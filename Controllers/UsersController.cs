@@ -1,3 +1,6 @@
+using System;
+using System.Web;
+using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Identity;
@@ -5,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using movie_api.Models;
@@ -92,6 +96,43 @@ namespace movie_api.Controllers
             Users createUser = await _userRepository.CreateAsync(user);
 
             return Ok(createUser);
+        }
+        
+        [Authorize]
+        [HttpPatch("/api/users/update-avatar")]
+        public async Task<IActionResult> UpdateAvatar([FromForm] UsersUpdateAvatar avatar)
+        {
+            var userId = int.Parse(HttpContext.Items["UserId"].ToString());
+            string path = "";
+            try
+            {
+                    if (avatar.avatar_file.Length <= 0) 
+                    {
+                        return BadRequest("File not found");
+                    }
+
+                    string fileName = Guid.NewGuid() + Path.GetExtension(avatar.avatar_file.FileName);
+                    path = Path.GetFullPath(Path.Combine(Directory.GetCurrentDirectory(), "Upload"));
+                    using (var fileStream = new FileStream(Path.Combine(path, fileName), FileMode.Create))
+                    {
+                        await avatar.avatar_file.CopyToAsync(fileStream);
+                        Users existingUser = await _userRepository.GetAsync(userId);
+                        if (existingUser.avatar.Contains("Upload"))
+                        {
+                            string oldFileName = new String(existingUser.avatar).Replace("/Upload/", "");
+                            var oldFilePath = Path.Combine(path, oldFileName);
+                            if (System.IO.File.Exists(oldFilePath))
+                                System.IO.File.Delete(oldFilePath);
+                        }
+
+                        Users updateUser = await _userRepository.UpdateAsync(userId, new UsersUpdate{ avatar = "/Upload/" + fileName });
+                        return Ok(updateUser);
+                    }
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         [Authorize(Roles = "1")]
