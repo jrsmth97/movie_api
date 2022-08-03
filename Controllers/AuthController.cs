@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Http;
 using FluentValidation.Results;
 using Newtonsoft.Json;
 using movie_api.Models;
@@ -42,19 +43,37 @@ namespace movie_api.Controllers
         public async Task<IActionResult> UserLogin(Login login)
         {
             Users user = await _userRepository.GetLoginAsync(login);
-            if (user == null) 
-                return BadRequest("Invalid login credentials");
+            if (user == null) {
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.LOGIN_FAILED,
+                    new string[] { "Invalid login credentials" },
+                    StatusCodes.Status400BadRequest
+                ));
+            }
 
-            if (user.is_confirmed == 0) 
-                return Unauthorized("Please activate your account");
+            if (user.is_confirmed == 0) {
+                return Unauthorized(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.LOGIN_FAILED,
+                    new string[] { "Please activate your account" },
+                    StatusCodes.Status401Unauthorized
+                ));
+            }
 
             PasswordVerificationResult verifyPassword = new PasswordHasher<object>().VerifyHashedPassword(null, user.password, login.password);
-            if (verifyPassword == PasswordVerificationResult.Failed)
-                return BadRequest("Invalid login credentials");
+            if (verifyPassword == PasswordVerificationResult.Failed) {
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.LOGIN_FAILED,
+                    new string[] { "Invalid login credentials" },
+                    StatusCodes.Status400BadRequest
+                ));
+            }
 
             _logger.LogInformation($"[POST: /api/auth/login] User login requested => '{JsonConvert.SerializeObject(user)}'");
             var token = _utils.generateToken(user);
-            return Ok(token);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.LOGIN_OK,
+                new { token = token }
+            ));
         }
 
         
@@ -63,11 +82,18 @@ namespace movie_api.Controllers
         {
             Users user = await _userRepository.GetActivateAsync(activation);
 
-            if (user == null) 
-                return NotFound("Email or Activation code not valid");
+            if (user == null) {
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.ACCOUNT_ACTIVATION_FAILED,
+                    new string[] { "Email or Activation code not valid" },
+                    StatusCodes.Status404NotFound
+                ));
+            }
 
             _logger.LogInformation("[POST: /api/auth/user-activation] Activating user data ( email : "+ user.email +")");
-            return Ok("Your account has been activated");
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.ACCOUNT_ACTIVATION_OK
+            ));
         }
 
         [HttpPost("/api/auth/register")]
@@ -82,7 +108,11 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(user);
 
             if (Result.IsValid == false) {
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.LOGIN_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
             }
             
             _logger.LogInformation($"[POST: /api/auth/register] User creation requested => '{JsonConvert.SerializeObject(user)}'");
@@ -92,7 +122,9 @@ namespace movie_api.Controllers
             sendMail.Start();
 
             Users createUser = await _userRepository.CreateAsync(user);
-            return Ok("Please check your email " + user.email);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.REGISTER_OK
+            ));
         }
     }
 }

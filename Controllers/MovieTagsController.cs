@@ -48,7 +48,10 @@ namespace movie_api.Controllers
         {
             IList<MovieTags> movieTags = await _movieTagRepository.GetListAsync();
             _logger.LogInformation("[GET: /api/movie-tags] All MovieTags data accessed");
-            return Ok(movieTags);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                movieTags
+            ));
         }
 
         [Authorize]
@@ -58,11 +61,18 @@ namespace movie_api.Controllers
             MovieTags movieTag = await _movieTagRepository.GetAsync(id);
             if (movieTag == null) {
                 _logger.LogInformation("[GET: /api/movie-tags/{id}] movieTag data not found ( id : " + id + ")");
-                return NotFound("Tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/movie-tags/{id}] movieTag data accessed ( id : " + id + ")");
-            return Ok(movieTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                movieTag
+            ));
         }
 
         [Authorize]
@@ -73,22 +83,37 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(movieTag);
 
             if (Result.IsValid == false)
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
 
             Movies movie = await _movieRepository.GetAsync(movieTag.movie_id);
             if (movie == null)
-                return BadRequest("Movie id not exists");
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    new string[] { "Movie id not exists" },
+                    StatusCodes.Status400BadRequest
+                ));
 
             Tags tag = await _tagRepository.GetAsync(movieTag.tag_id);
             if (tag == null)
-                return BadRequest("Tag id not exists");
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    new string[] { "Tag id not exists" },
+                    StatusCodes.Status400BadRequest
+                ));
             
             movieTag.movie = movie;
             movieTag.tag = tag;
             _logger.LogInformation($"[POST: /api/movie-tags] movieTag creation requested => '{JsonConvert.SerializeObject(movieTag)}'");
-            MovieTags createTag = await _movieTagRepository.CreateAsync(movieTag);
+            MovieTags createMovieTag = await _movieTagRepository.CreateAsync(movieTag);
 
-            return Ok(createTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createMovieTag
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -100,11 +125,18 @@ namespace movie_api.Controllers
             if (movieTag == null) 
             {
                 _logger.LogInformation("[DELETE: /api/movie-tags/delete/{id}] movieTag not exist ( id : " + id + ")");
-                return NotFound("movieTag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/movie-tags/delete/{id}] Deleting movie Tag ( id : "+id+")");
-            return Ok(movieTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                movieTag
+            ));
 
         }
 
@@ -117,11 +149,18 @@ namespace movie_api.Controllers
             if (movieTag == null) 
             {
                 _logger.LogInformation("[PATCH: /api/movie-tags/delete/{id}] not exist movieTag ( id : " + id + ")");
-                return NotFound("Tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/movie-tags/delete/{id}] Deleting movieTag ( id : "+id+")");
-            return Ok(movieTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                movieTag
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -133,11 +172,18 @@ namespace movie_api.Controllers
             if (updateTag == null) 
             {
                 _logger.LogInformation("[PATCH: /api/movie-tags/{id}] not exist movieTag ( id : " + id + ")");
-                return NotFound("Tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/movie-tags/{id}] Updating movieTag ( id : "+ id +")");
-            return Ok(updateTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateTag
+            ));
         }
     }
 }

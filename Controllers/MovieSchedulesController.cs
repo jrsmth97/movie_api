@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using FluentValidation.Results;
@@ -9,6 +10,7 @@ using movie_api.Models;
 using movie_api.Validations;
 using movie_api.Repositories;
 using movie_api.Attributes;
+using movie_api.Utils;
 
 namespace movie_api.Controllers
 {
@@ -43,7 +45,10 @@ namespace movie_api.Controllers
         {
             IList<MovieSchedules> movieSchedules = await _movieScheduleRepository.GetListAsync();
             _logger.LogInformation("[gGET: /api/movie-schedules] All MovieSchedules data accessed");
-            return Ok(movieSchedules);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                movieSchedules
+            ));
         }
 
         [Authorize]
@@ -53,11 +58,18 @@ namespace movie_api.Controllers
             MovieSchedules movieSchedule = await _movieScheduleRepository.GetAsync(id);
             if (movieSchedule == null) {
                 _logger.LogInformation("[GET: /api/movie-schedules/{id}] movieSchedule data not found ( id : " + id + ")");
-                return NotFound("Schedule not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie schedule not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/movie-schedules/{id}] movieSchedule data accessed ( id : " + id + ")");
-            return Ok(movieSchedule);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                movieSchedule
+            ));
         }
 
         [Authorize]
@@ -67,24 +79,38 @@ namespace movie_api.Controllers
             MovieSchedulesValidation Obj = new MovieSchedulesValidation();
             ValidationResult Result = Obj.Validate(movieSchedule);
 
-            if (Result.IsValid == false) {
-                return BadRequest(Result);
-            }
+            if (Result.IsValid == false) 
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
 
             Movies movie = await _movieRepository.GetAsync(movieSchedule.movie_id);
             if (movie == null)
-                return BadRequest("Movie id not exists");
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    new string[] { "Movie id not exists" },
+                    StatusCodes.Status400BadRequest
+                ));
 
             Studios studio = await _studioRepository.GetAsync(movieSchedule.studio_id);
             if (studio == null)
-                return BadRequest("Studio id not exists");
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    new string[] { "Studio id not exists" },
+                    StatusCodes.Status400BadRequest
+                ));
             
             movieSchedule.movie = movie;
             movieSchedule.studio = studio;
             _logger.LogInformation($"[POST: /api/movie-schedules] movieSchedule creation requested => '{JsonConvert.SerializeObject(movieSchedule)}'");
             MovieSchedules createSchedule = await _movieScheduleRepository.CreateAsync(movieSchedule);
 
-            return Ok(createSchedule);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createSchedule
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -96,12 +122,18 @@ namespace movie_api.Controllers
             if (movieSchedule == null) 
             {
                 _logger.LogInformation("[DELETE: /api/movie-schedules/delete/{id}] movieSchedule not exist ( id : " + id + ")");
-                return NotFound("movieSchedule not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie schedule not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/movie-schedules/delete/{id}] Deleting movie Schedule ( id : "+id+")");
-            return Ok(movieSchedule);
-
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                movieSchedule
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -113,11 +145,18 @@ namespace movie_api.Controllers
             if (movieSchedule == null) 
             {
                 _logger.LogInformation("[PATCH: /api/movie-schedules/delete/{id}] not exist movieSchedule ( id : " + id + ")");
-                return NotFound("Schedule not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie schedule not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/movie-schedules/delete/{id}] Deleting movieSchedule ( id : "+id+")");
-            return Ok(movieSchedule);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                movieSchedule
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -129,11 +168,18 @@ namespace movie_api.Controllers
             if (updateSchedule == null) 
             {
                 _logger.LogInformation("[PATCH: /api/movie-schedules/{id}] not exist movieSchedule ( id : " + id + ")");
-                return NotFound("Schedule not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie schedule not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/movie-schedules/{id}] Updating movieSchedule ( id : "+ id +")");
-            return Ok(updateSchedule);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateSchedule
+            ));
         }
     }
 }

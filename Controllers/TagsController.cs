@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using FluentValidation.Results;
@@ -38,7 +39,10 @@ namespace movie_api.Controllers
         {
             IList<Tags> tags = await _tagRepository.GetListAsync();
             _logger.LogInformation("[GET: /api/tags] All Tags data accessed");
-            return Ok(tags);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                tags
+            ));
         }
 
         [Authorize]
@@ -48,11 +52,18 @@ namespace movie_api.Controllers
             Tags tag = await _tagRepository.GetAsync(id);
             if (tag == null) {
                 _logger.LogInformation("[GET: /api/tags/{id}] tag data not found ( id : " + id + ")");
-                return NotFound("Tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/tags/{id}] tag data accessed ( id : " + id + ")");
-            return Ok(tag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                tag
+            ));
         }
 
         [Authorize]
@@ -63,13 +74,20 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(tag);
 
             if (Result.IsValid == false) {
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
             }
             
             _logger.LogInformation($"[POST: /api/tags] tag creation requested => '{JsonConvert.SerializeObject(tag)}'");
             Tags createTag = await _tagRepository.CreateAsync(tag);
 
-            return Ok(createTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createTag
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -81,11 +99,18 @@ namespace movie_api.Controllers
             if (tag == null) 
             {
                 _logger.LogInformation("[DELETE: /api/tags/delete/{id}] tag not exist ( id : " + id + ")");
-                return NotFound("tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/tags/delete/{id}] Deleting Tag ( id : "+id+")");
-            return Ok(tag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                tag
+            ));
 
         }
 
@@ -98,11 +123,18 @@ namespace movie_api.Controllers
             if (tag == null) 
             {
                 _logger.LogInformation("[PATCH: /api/tags/delete/{id}] not exist Tag ( id : " + id + ")");
-                return NotFound("Tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/tags/delete/{id}] Deleting Tag ( id : "+id+")");
-            return Ok(tag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                tag
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -114,11 +146,18 @@ namespace movie_api.Controllers
             if (updateTag == null) 
             {
                 _logger.LogInformation("[PATCH: /api/tags/{id}] not exist Tag ( id : " + id + ")");
-                return NotFound("Tag not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Tag not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/tags/{id}] Updating Tag ( id : "+ id +")");
-            return Ok(updateTag);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateTag
+            ));
         }
     }
 }

@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using FluentValidation.Results;
@@ -38,7 +39,10 @@ namespace movie_api.Controllers
         {
             IList<Studios> studios = await _studioRepository.GetListAsync();
             _logger.LogInformation("[GET: /api/studios] All Studios data accessed");
-            return Ok(studios);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                studios
+            ));
         }
 
         [Authorize]
@@ -48,11 +52,18 @@ namespace movie_api.Controllers
             Studios studio = await _studioRepository.GetAsync(id);
             if (studio == null) {
                 _logger.LogInformation("[GET: /api/studios/{id}] Studio data not found ( id : " + id + ")");
-                return NotFound("Studio not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Studio not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/studios/{id}] Studio data accessed ( id : " + id + ")");
-            return Ok(studio);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                studio
+            ));
         }
 
         [Authorize]
@@ -63,13 +74,20 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(studio);
 
             if (Result.IsValid == false) {
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
             }
             
             _logger.LogInformation($"[POST: /api/studios] Studiocreation requested => '{JsonConvert.SerializeObject(studio)}'");
             Studios createStudio = await _studioRepository.CreateAsync(studio);
 
-            return Ok(createStudio);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createStudio
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -81,11 +99,18 @@ namespace movie_api.Controllers
             if (studio == null) 
             {
                 _logger.LogInformation("[DELETE: /api/studios/delete/{id}] not exist studio ( id : " + id + ")");
-                return NotFound("Studio not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Studio not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/studios/delete/{id}] Deleting Studio ( id : "+id+")");
-            return Ok(studio);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                studio
+            ));
 
         }
 
@@ -98,11 +123,18 @@ namespace movie_api.Controllers
             if (studio == null) 
             {
                 _logger.LogInformation("[PATCH: /api/studios/delete/{id}] not exist Studio ( id : " + id + ")");
-                return NotFound("Studio not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Studio not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/studios/delete/{id}] Deleting Studio ( id : "+id+")");
-            return Ok(studio);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                studio
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -114,11 +146,18 @@ namespace movie_api.Controllers
             if (updateStudio == null) 
             {
                 _logger.LogInformation("[PATCH: /api/studios/{id}] not exist Studio ( id : " + id + ")");
-                return NotFound("Studio not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Studio not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/studios/{id}] Updating Studio ( id : "+ id +")");
-            return Ok(updateStudio);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateStudio
+            ));
         }
     }
 }

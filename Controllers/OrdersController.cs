@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using FluentValidation.Results;
@@ -9,6 +10,7 @@ using movie_api.Models;
 using movie_api.Validations;
 using movie_api.Repositories;
 using movie_api.Attributes;
+using movie_api.Utils;
 
 namespace movie_api.Controllers
 {
@@ -40,7 +42,10 @@ namespace movie_api.Controllers
         {
             IList<Orders> orders = await _orderRepository.GetListAsync();
             _logger.LogInformation("[GET: /api/orders] All Orders data accessed");
-            return Ok(orders);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                orders
+            ));
         }
 
         [Authorize]
@@ -50,7 +55,11 @@ namespace movie_api.Controllers
             Orders order = await _orderRepository.GetAsync(id);
             if (order == null) {
                 _logger.LogInformation("[GET: /api/orders/{id}] Order data not found ( id : " + id + ")");
-                return NotFound("Order not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Order not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/orders/{id}] Order data accessed ( id : " + id + ")");
@@ -65,19 +74,30 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(order);
 
             if (Result.IsValid == false) {
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
             }
 
             Users user = await _userRepository.GetAsync(order.user_id);
             if (user == null)
-                return BadRequest("User id not exists");
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    new string[] { "User id not exists" },
+                    StatusCodes.Status400BadRequest
+                ));
 
 
             order.user = user;
             _logger.LogInformation($"[POST: /api/orders] Ordercreation requested => '{JsonConvert.SerializeObject(order)}'");
             Orders createOrder = await _orderRepository.CreateAsync(order);
 
-            return Ok(createOrder);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createOrder
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -89,11 +109,18 @@ namespace movie_api.Controllers
             if (order == null) 
             {
                 _logger.LogInformation("[DELETE: /api/orders/delete/{id}] not exist order ( id : " + id + ")");
-                return NotFound("Order not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Order not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/orders/delete/{id}] Deleting Order ( id : "+id+")");
-            return Ok(order);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                order
+            ));
 
         }
 
@@ -106,11 +133,18 @@ namespace movie_api.Controllers
             if (order == null) 
             {
                 _logger.LogInformation("[PATCH: /api/orders/delete/{id}] not exist Order ( id : " + id + ")");
-                return NotFound("Order not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Order not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/orders/delete/{id}] Deleting Order ( id : "+id+")");
-            return Ok(order);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                order
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -122,11 +156,18 @@ namespace movie_api.Controllers
             if (updateOrder == null) 
             {
                 _logger.LogInformation("[PATCH: /api/orders/{id}] not exist Order ( id : " + id + ")");
-                return NotFound("Order not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Orde not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/orders/{id}] Updating Order ( id : "+ id +")");
-            return Ok(updateOrder);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateOrder
+            ));
         }
     }
 }

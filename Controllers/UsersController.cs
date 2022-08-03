@@ -15,6 +15,7 @@ using movie_api.Models;
 using movie_api.Validations;
 using movie_api.Repositories;
 using movie_api.Helpers;
+using movie_api.Utils;
 using movie_api.Attributes;
 
 namespace movie_api.Controllers
@@ -46,7 +47,10 @@ namespace movie_api.Controllers
         {
             IList<Users> users = await _userRepository.GetListAsync();
             _logger.LogInformation("[GET: /api/users] All users data accessed");
-            return Ok(users);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                users
+            ));
         }
 
         [Authorize]
@@ -57,11 +61,18 @@ namespace movie_api.Controllers
             Users user = await _userRepository.GetAsync(userId);
             if (user == null) {
                 _logger.LogInformation("[GET: /api/users/my-account] user data not found ( id : " + userId + ")");
-                return NotFound("User not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "User not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/users/my-account] user data accessed ( id : " + userId + ")");
-            return Ok(user);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                user
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -71,11 +82,18 @@ namespace movie_api.Controllers
             Users user = await _userRepository.GetAsync(id);
             if (user == null) {
                 _logger.LogInformation("[GET: /api/users/{id}] user data not found ( id : " + id + ")");
-                return NotFound("User not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "User not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/users/{id}] user data accessed ( id : " + id + ")");
-            return Ok(user);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                user
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -89,13 +107,20 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(user);
 
             if (Result.IsValid == false) {
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
             }
             
             _logger.LogInformation($"[POST: /api/users] User create => '{JsonConvert.SerializeObject(user)}'");
             Users createUser = await _userRepository.CreateAsync(user);
 
-            return Ok(createUser);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createUser
+            ));
         }
         
         [Authorize]
@@ -109,7 +134,11 @@ namespace movie_api.Controllers
             {
                     if (avatar.avatar_file.Length <= 0) 
                     {
-                        return BadRequest("File not found");
+                        return BadRequest(ResponseBuilder.FailedResponse(
+                            ResponseBuilder.UPDATE_FAILED,
+                            new string[] { "File not found" },
+                            StatusCodes.Status400BadRequest
+                        ));
                     }
 
                     string fileName = Guid.NewGuid() + Path.GetExtension(avatar.avatar_file.FileName);
@@ -127,7 +156,10 @@ namespace movie_api.Controllers
                         }
 
                         Users updateUser = await _userRepository.UpdateAsync(userId, new UsersUpdate{ avatar = "/Upload/" + fileName });
-                        return Ok(updateUser);
+                        return Ok(ResponseBuilder.SuccessResponse(
+                            ResponseBuilder.UPDATE_OK,
+                            updateUser
+                        ));
                     }
             }
             catch (Exception e)
@@ -145,12 +177,18 @@ namespace movie_api.Controllers
             if (user == null) 
             {
                 _logger.LogInformation("[DELETE: /api/users/delete/{id}] not exist user ( id : " + id + ")");
-                return NotFound("User not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "User not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/users/delete/{id}] Deleting user ( id : "+id+")");
-            return Ok(user);
-
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                user
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -162,11 +200,18 @@ namespace movie_api.Controllers
             if (user == null) 
             {
                 _logger.LogInformation("[PATCH: /api/users/delete/{id}] not exist user ( id : " + id + ")");
-                return NotFound("User not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "User not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/users/delete/{id}] Deleting user ( id : "+id+")");
-            return Ok(user);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                user
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -181,11 +226,18 @@ namespace movie_api.Controllers
             if (updateUser == null) 
             {
                 _logger.LogInformation("[PATCH: /api/users/{id}] not exist user ( id : " + id + ")");
-                return NotFound("User not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "User not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/users/{id}] Updating user ( id : "+ id +")");
-            return Ok(updateUser);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateUser
+            ));
         }
     }
 }

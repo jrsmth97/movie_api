@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using FluentValidation.Results;
@@ -50,7 +51,10 @@ namespace movie_api.Controllers
             };
 
             _logger.LogInformation("[GET: /api/movies] All movies data accessed");
-            return Ok(listData);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                listData
+            ));
         }
 
         [Authorize]
@@ -61,11 +65,18 @@ namespace movie_api.Controllers
 
             if (movie == null) {
                 _logger.LogInformation("[GET: /api/movies/{id}] movie data not found ( id : " + id + ")");
-                return NotFound("Movie not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
 
             _logger.LogInformation("[GET: /api/movies/{id}] movie data accessed ( id : " + id + ")");
-            return Ok(movie);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.GET_OK,
+                movie
+            ));
         }
 
         [Authorize]
@@ -76,13 +87,20 @@ namespace movie_api.Controllers
             ValidationResult Result = Obj.Validate(movie);
 
             if (Result.IsValid == false) {
-                return BadRequest(Result);
+                return BadRequest(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.CREATE_FAILED,
+                    Result,
+                    StatusCodes.Status400BadRequest
+                ));
             }
             
             _logger.LogInformation($"[POST: /api/movies] Moviecreation requested => '{JsonConvert.SerializeObject(movie)}'");
             Movies createMovie = await _movieRepository.CreateAsync(movie);
 
-            return Ok(createMovie);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.CREATE_OK,
+                createMovie
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -94,12 +112,18 @@ namespace movie_api.Controllers
             if (movie == null) 
             {
                 _logger.LogInformation("[DELETE: /api/movies/delete/{id}] not exist Movie ( id : " + id + ")");
-                return NotFound("Movie not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[DELETE: /api/movies/delete/{id}] Deleting Movie ( id : "+id+")");
-            return Ok(movie);
-
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                movie
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -111,11 +135,18 @@ namespace movie_api.Controllers
             if (movie == null) 
             {
                 _logger.LogInformation("[PATCH: /api/movies/delete/{id}] not exist Movie ( id : " + id + ")");
-                return NotFound("Movie not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/movies/delete/{id}] Deleting Movie ( id : "+id+")");
-            return Ok(movie);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.DELETE_OK,
+                movie
+            ));
         }
 
         [Authorize(Roles = "1")]
@@ -127,11 +158,18 @@ namespace movie_api.Controllers
             if (updateMovie == null) 
             {
                 _logger.LogInformation("[PATCH: /api/movies/{id}] not exist Movie ( id : " + id + ")");
-                return NotFound("Movie not found");
+                return NotFound(ResponseBuilder.FailedResponse(
+                    ResponseBuilder.NOT_FOUND,
+                    new string[] { "Movie not found" },
+                    StatusCodes.Status404NotFound
+                ));
             }
             
             _logger.LogInformation("[PATCH: /api/movies/{id}] Updating Movie ( id : "+ id +")");
-            return Ok(updateMovie);
+            return Ok(ResponseBuilder.SuccessResponse(
+                ResponseBuilder.UPDATE_OK,
+                updateMovie
+            ));
         }
     }
 }
