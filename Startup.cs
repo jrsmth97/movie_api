@@ -41,7 +41,6 @@ namespace movie_api
             app.UseSession();
 
             app.UseMiddleware<AuthMiddleware>();
-            app.UseMiddleware<APIResponseMiddleware>();
             app.UseEndpoints(endpoints => endpoints.MapControllers());
 
             loggerFactory.AddFile("Logs/movie_api_log-{Date}.txt");
@@ -67,7 +66,7 @@ namespace movie_api
             services.AddControllers().AddFluentValidation(fv =>
             {
                 fv.RegisterValidatorsFromAssembly(Assembly.GetExecutingAssembly());
-            });;
+            });
         }
 
         private static void poolHanderOptions(DbContextOptionsBuilder options) 
